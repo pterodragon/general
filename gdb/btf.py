@@ -1,11 +1,15 @@
 # # for code completion
-# import sys
-# sys.path.append('/usr/share/gdb/python')
+import sys
+sys.path.append('/usr/share/gdb/python')
 
 import gdb
+from colorama import Fore, Back, Style
 
 def gprint(*args):
     gdb.write(' '.join(str(x) for x in args) + '\n')
+
+def cwrap(x, c, s):
+    return getattr(c, s) + str(x) + getattr(c, 'RESET')
 
 
 class BtFuncOnly(gdb.Command):
@@ -16,10 +20,10 @@ class BtFuncOnly(gdb.Command):
     def invoke(self, argument, from_tty):
         frame: gdb.Frame = gdb.selected_frame()
         while frame is not None:
-            f = frame.function()
-            fn = f.symtab.filename
-            gprint(f'{fn}:{f.line}', frame.name())
+            func = frame.function()
+            file_name = func.symtab.filename
+            frame_name = cwrap(frame.name(), Fore, "RED")
+            gprint(f'{file_name}:{func.line}', frame_name)
             frame = frame.older()
 BtFuncOnly()
-
 
